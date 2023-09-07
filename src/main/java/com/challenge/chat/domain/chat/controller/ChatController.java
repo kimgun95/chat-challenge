@@ -1,12 +1,10 @@
 package com.challenge.chat.domain.chat.controller;
 
-import com.challenge.chat.domain.chat.constant.KafkaConstants;
 import com.challenge.chat.domain.chat.dto.ChatDto;
 import com.challenge.chat.domain.chat.dto.ChatRoomDto;
 import com.challenge.chat.domain.chat.dto.request.ChatRoomAddRequest;
 import com.challenge.chat.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.challenge.chat.domain.chat.service.ChatService;
-import com.challenge.chat.domain.chat.service.Producer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +27,7 @@ import java.util.List;
 public class ChatController {
 
 	private final ChatService chatService;
-	private final Producer producer;
 	private final SimpMessagingTemplate msgOperation;
-
-	// private final RabbitTemplate rabbitTemplate;
-
-	// private final static String CHAT_EXCHANGE_NAME = "chat.exchange";
 
 	@PostMapping("/chat")
 	public ResponseEntity<ChatRoomDto> createChatRoom(
@@ -77,38 +70,29 @@ public class ChatController {
 		SimpMessageHeaderAccessor headerAccessor) {
 
 		ChatDto newChatDto = chatService.makeEnterMessageAndSetSessionAttribute(chatDto, headerAccessor);
-		// producer.send(
-		// 	KafkaConstants.KAFKA_TOPIC,
-		// 	newchatDto
-		// );
 
 		msgOperation.convertAndSend("/topic/chat/room/" + chatDto.getRoomCode(), newChatDto);
-		// rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "room." + newChatDto.getRoomCode(), newChatDto);
 	}
 
 	@MessageMapping("/chat/send")
 	public void sendChatRoom(
 		@RequestBody ChatDto chatDto) {
 
-		producer.send(
-			KafkaConstants.KAFKA_TOPIC,
-			chatDto
-		);
-		// rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "room." + chatDto.getRoomCode(), chatDto);
+
 		// chatService.sendChatRoom(chatDto);
 		msgOperation.convertAndSend("/topic/chat/room/" + chatDto.getRoomCode(), chatDto);
 	}
 
-	@GetMapping("/chat/{room-code}/{message}")
-	public ResponseEntity<List<ChatDto>> searchChatList(
-		@PathVariable("room-code") final String roomCode,
-		@PathVariable("message") final String message) {
-
-		log.info("Controller : 채팅 메시지 검색");
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(chatService.findChatList(roomCode, message));
-	}
+	// @GetMapping("/chat/{room-code}/{message}")
+	// public ResponseEntity<List<ChatDto>> searchChatList(
+	// 	@PathVariable("room-code") final String roomCode,
+	// 	@PathVariable("message") final String message) {
+	//
+	// 	log.info("Controller : 채팅 메시지 검색");
+	//
+	// 	return ResponseEntity.status(HttpStatus.OK)
+	// 		.body(chatService.findChatList(roomCode, message));
+	// }
 
 	// @EventListener
 	// public void webSocketDisconnectListener(SessionDisconnectEvent event) {

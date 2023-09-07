@@ -16,7 +16,6 @@ import com.challenge.chat.exception.dto.ChatErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +35,6 @@ public class ChatService {
 	private final ChatRoomRepository chatRoomRepository;
 	private final ChatRepository chatRepository;
 	private final MemberService memberService;
-	private final ElasticsearchOperations elasticsearchOperations;
 
 	@Transactional
 	public ChatRoomDto makeChatRoom(final String roomName, final String memberEmail) {
@@ -104,34 +102,6 @@ public class ChatService {
 		return chatDto;
 	}
 
-	// public void sendChatRoom(ChatDto chatDto) {
-	// 	chatRepository.save(ChatDto.toEntity(chatDto));
-	// }
-
-	public List<ChatDto> findChatList(final String roomCode, final String message) {
-
-		List<Chat> chatList = chatRepository.findByRoomCodeAndMessageContaining(roomCode, message)
-			.orElse(Collections.emptyList());
-
-		return chatList.stream()
-			.map(ChatDto::from)
-			.collect(Collectors.toList());
-
-		// QueryBuilder queryBuilder = QueryBuilders.boolQuery()
-		// 	.must(QueryBuilders.matchQuery("message", message))
-		// 	.must(QueryBuilders.matchQuery("roomCode", roomCode));
-		//
-		// NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-		// 	.withQuery(queryBuilder)
-		// 	.build();
-		//
-		// SearchHits<ChatES> searchHits = elasticsearchOperations.search(searchQuery, ChatES.class);
-		//
-		// return searchHits.stream()
-		// 	.map(SearchHit::getContent)
-		// 	.map(ChatDto::from)
-		// 	.collect(Collectors.toList());
-	}
 
 	public ChatDto leaveChatRoom(SimpMessageHeaderAccessor headerAccessor) {
 
